@@ -1,0 +1,2481 @@
+FreeRTOS Multi-Task Monitoring System
+Complete Beginner-to-Interview Handbook
+
+Project: FreeRTOS Multi-Task Monitoring System
+Platform: Windows FreeRTOS Simulation
+Language: C
+Build System: CMake
+IDE: Visual Studio Code / Visual Studio
+RTOS: FreeRTOS Kernel
+Target Migration: STM32F4 / STM32F411
+Project Repository: FreeRTOS-MultiTask-Monitor
+
+Table of Contents
+Project Introduction
+What is an RTOS?
+What is FreeRTOS?
+Why We Built This Project
+Project Learning Roadmap
+Development Environment
+Project Folder Structure
+Git and GitHub Basics
+Getting the FreeRTOS Kernel
+CMake Basics
+FreeRTOSConfig.h
+FreeRTOS Scheduler
+FreeRTOS Tasks
+Task Function
+Task Parameters
+Task Priority
+Preemptive Scheduling
+FreeRTOS Tick
+vTaskDelay()
+Task States
+Task Handles
+Queue
+Producer-Consumer Concept
+Binary Semaphore
+Semaphore vs Queue
+Mutex
+Mutex vs Binary Semaphore
+Priority Inheritance
+Task Notification
+Queue vs Semaphore vs Notification
+Software Timer
+Timer Callback
+Auto-Reload Timer
+Task Monitoring
+Stack Monitoring
+Stack High-Water Mark
+Interrupts
+ISR-to-Task Communication
+FromISR APIs
+Simulated Interrupt in Our Project
+Complete Project Architecture
+Complete Program Flow
+Important FreeRTOS APIs Used
+Error Checking
+Dynamic Memory Allocation
+Windows Simulation Limitations
+Building the Project
+Running the Project
+Understanding Console Output
+Common Errors and Solutions
+Git Repository Setup
+Git Submodule
+GitHub Push
+STM32 Migration
+Interview Questions
+How to Explain This Project in an Interview
+Resume Description
+Final Learning Checklist
+Command Cheat Sheet
+Final Conclusion
+1. PROJECT INTRODUCTION
+
+The project we developed is called:
+
+FreeRTOS Multi-Task Monitoring System
+
+The purpose of this project is to learn and demonstrate the major concepts of FreeRTOS using a practical application.
+
+Instead of learning each FreeRTOS API independently, we combined multiple RTOS concepts into one application.
+
+The project demonstrates:
+
+Task creation
+Task scheduling
+Task priorities
+Preemptive multitasking
+Task delays
+Queue communication
+Binary semaphore
+Mutex
+Task notifications
+Software timers
+Task handles
+Task state monitoring
+Stack monitoring
+Interrupt/event simulation
+Dynamic memory allocation
+Error checking
+CMake build system
+Git
+GitHub
+FreeRTOS Kernel as a Git submodule
+Future migration to STM32
+2. WHAT IS AN RTOS?
+Definition
+
+RTOS stands for:
+
+Real-Time Operating System
+
+An RTOS is an operating system designed to manage multiple tasks where the timing of operations is important.
+
+In embedded systems, different operations often need to happen at different time intervals.
+
+For example, a train control system may need to:
+
+Read sensors
+Process communication
+Monitor system health
+Update a display
+Handle alarms
+Record diagnostic information
+
+All these operations may need to happen independently.
+
+An RTOS provides mechanisms to manage these operations.
+
+Small Example
+
+Imagine an embedded controller with three activities:
+
+Task 1 → Read sensor every 100 ms
+
+Task 2 → Send communication packet every 500 ms
+
+Task 3 → Monitor system every 1 second
+
+Without an RTOS, we may write one large loop:
+
+while(1)
+{
+    ReadSensor();
+    SendCommunication();
+    MonitorSystem();
+}
+
+With an RTOS:
+
+Sensor Task
+Communication Task
+Monitor Task
+
+Each task can have its own timing and priority.
+
+3. WHAT IS FREERTOS?
+Definition
+
+FreeRTOS is a real-time operating system kernel designed primarily for embedded systems and microcontrollers.
+
+It provides facilities for:
+
+Task management
+Scheduling
+Queues
+Semaphores
+Mutexes
+Task notifications
+Software timers
+Memory management
+Inter-task communication
+
+FreeRTOS does not mean that it replaces all MCU firmware.
+
+Instead:
+
+Application
+     ↓
+FreeRTOS APIs
+     ↓
+FreeRTOS Kernel
+     ↓
+Hardware / MCU
+Small Example
+
+Without FreeRTOS:
+
+while(1)
+{
+    Sensor();
+    Communication();
+    Display();
+}
+
+With FreeRTOS:
+
+xTaskCreate(SensorTask, ...);
+xTaskCreate(CommunicationTask, ...);
+xTaskCreate(DisplayTask, ...);
+
+vTaskStartScheduler();
+
+The scheduler manages execution of the tasks.
+
+4. WHY WE BUILT THIS PROJECT
+
+The main objective was to gain practical understanding of FreeRTOS.
+
+The project was initially developed on Windows because the physical STM32 board was not available during development.
+
+Therefore, we used the FreeRTOS Windows/MSVC-compatible simulation port.
+
+This allowed us to practice:
+
+Tasks
+ ↓
+Queue
+ ↓
+Semaphore
+ ↓
+Mutex
+ ↓
+Notification
+ ↓
+Timer
+ ↓
+Monitoring
+ ↓
+Interrupt/Event Simulation
+
+Later, the same architecture can be migrated to STM32.
+
+5. PROJECT LEARNING ROADMAP
+
+We followed this progression:
+
+Basic Task
+    ↓
+Multiple Tasks
+    ↓
+Scheduler
+    ↓
+Queue
+    ↓
+Binary Semaphore
+    ↓
+Mutex
+    ↓
+Task Notification
+    ↓
+Software Timer
+    ↓
+Task Monitoring
+    ↓
+Stack Monitoring
+    ↓
+Interrupt Simulation
+    ↓
+Complete Integrated Project
+    ↓
+STM32 Migration
+
+This order is useful because each concept builds on the previous concept.
+
+6. DEVELOPMENT ENVIRONMENT
+
+Our development environment:
+
+Component	Used
+OS	Windows 11
+IDE	Visual Studio Code
+Compiler	Microsoft Visual C
+Build System	CMake
+RTOS	FreeRTOS Kernel
+Language	C
+Version Control	Git
+Repository	GitHub
+7. PROJECT FOLDER STRUCTURE
+
+Our final project structure is:
+
+FreeRTOS-MultiTask-Monitor
+│
+├── .git/
+│
+├── .gitignore
+│
+├── .gitmodules
+│
+├── CMakeLists.txt
+│
+├── FreeRTOS-Kernel/
+│
+├── build/
+│
+└── src/
+    │
+    ├── main.c
+    │
+    └── FreeRTOSConfig.h
+Explanation
+.git
+
+Contains Git repository information.
+
+.gitignore
+
+Specifies files Git should ignore.
+
+For example:
+
+build/
+.vscode/
+*.exe
+*.obj
+.gitmodules
+
+Stores Git submodule information.
+
+CMakeLists.txt
+
+Defines how the project is built.
+
+FreeRTOS-Kernel
+
+Contains the FreeRTOS source code.
+
+src
+
+Contains our application code.
+
+main.c
+
+Contains tasks and application logic.
+
+FreeRTOSConfig.h
+
+Contains FreeRTOS configuration settings.
+
+build
+
+Contains generated build files.
+
+We don't upload the build directory to GitHub.
+
+8. WHAT IS GIT?
+Definition
+
+Git is a distributed version control system.
+
+It allows us to:
+
+Track source code changes
+Create commits
+Create branches
+Restore previous versions
+Collaborate with developers
+Small Example
+
+Suppose we have:
+
+main.c
+
+We modify it.
+
+Then:
+
+git add .
+git commit -m "Add queue communication"
+
+Git records that version.
+
+9. WHAT IS GITHUB?
+Definition
+
+GitHub is a cloud platform for hosting Git repositories.
+
+Git:
+
+Local computer
+
+GitHub:
+
+Remote repository
+
+We pushed our project to GitHub so it can be:
+
+Shared
+Backed up
+Reviewed
+Used as a portfolio project
+10. GETTING THE FREERTOS KERNEL
+
+We used the FreeRTOS Kernel repository.
+
+The kernel was cloned separately because the complete FreeRTOS repository caused a Windows path-length issue during cloning.
+
+The kernel contains important files such as:
+
+tasks.c
+queue.c
+list.c
+timers.c
+portable/
+
+The project uses the MSVC/MinGW-compatible portable layer.
+
+11. WHAT IS CMAKE?
+Definition
+
+CMake is a build-system generator.
+
+It does not directly compile our application.
+
+Instead, CMake generates build files for a compiler/build environment.
+
+Our flow is:
+
+CMakeLists.txt
+       ↓
+CMake
+       ↓
+Visual Studio Build Files
+       ↓
+Compiler
+       ↓
+.exe
+12. OUR CMakeLists.txt
+cmake_minimum_required(VERSION 3.20)
+
+project(FreeRTOS_MultiTask_Monitor C)
+
+add_library(freertos_config INTERFACE)
+
+target_include_directories(
+    freertos_config
+    INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+set(FREERTOS_PORT MSVC_MINGW CACHE STRING "" FORCE)
+set(FREERTOS_HEAP 4 CACHE STRING "" FORCE)
+
+add_subdirectory(
+    ${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-Kernel
+)
+
+add_executable(
+    FreeRTOS_MultiTask_Monitor
+    src/main.c
+)
+
+target_include_directories(
+    FreeRTOS_MultiTask_Monitor
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(
+    FreeRTOS_MultiTask_Monitor
+    PRIVATE
+        freertos_kernel
+)
+13. WHAT IS FREERTOSCONFIG.H?
+Definition
+
+FreeRTOSConfig.h contains configuration options used to configure the FreeRTOS kernel for a particular application.
+
+It determines things such as:
+
+Tick frequency
+Maximum priorities
+Heap size
+Task stack size
+Mutex support
+Timer support
+Notification support
+14. IMPORTANT FREERTOS CONFIGURATION
+
+Example:
+
+#define configUSE_PREEMPTION 1
+
+This enables preemptive scheduling.
+
+#define configTICK_RATE_HZ 1000
+
+This configures a 1000 Hz RTOS tick.
+
+That means approximately:
+
+1 tick = 1 ms
+#define configMAX_PRIORITIES 5
+
+Defines the number of priority levels.
+
+#define configTOTAL_HEAP_SIZE (64 * 1024)
+
+Allocates 64 KB for FreeRTOS dynamic memory.
+
+#define configUSE_MUTEXES 1
+
+Enables mutex support.
+
+#define configUSE_TIMERS 1
+
+Enables software timers.
+
+15. WHAT IS THE FREERTOS SCHEDULER?
+Definition
+
+The scheduler is the component of FreeRTOS responsible for deciding which task should execute.
+
+For example:
+
+Sensor Task       Priority 3
+Communication     Priority 2
+Monitor           Priority 1
+
+If all are ready:
+
+Sensor Task
+
+gets CPU time first because it has the highest priority.
+
+16. WHAT IS A TASK?
+Definition
+
+A task is an independent unit of execution managed by FreeRTOS.
+
+You can think of a task as an independent function that has:
+
+Its own stack
+Its own execution state
+Its own priority
+Its own task control information
+Small Example
+void SensorTask(void *pvParameters)
+{
+    while(1)
+    {
+        printf("Reading sensor\n");
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+This task repeatedly reads a simulated sensor every second.
+
+17. TASK CREATION
+
+The API is:
+
+xTaskCreate()
+
+Example:
+
+xTaskCreate(
+    SensorTask,
+    "Sensor",
+    1024,
+    NULL,
+    3,
+    &sensorTaskHandle
+);
+
+Parameters:
+
+SensorTask
+    ↓
+Task function
+
+"Sensor"
+    ↓
+Task name
+
+1024
+    ↓
+Stack size
+
+NULL
+    ↓
+Task parameter
+
+3
+    ↓
+Priority
+
+&sensorTaskHandle
+    ↓
+Task handle
+18. TASK FUNCTION
+
+Every FreeRTOS task normally has this structure:
+
+void TaskFunction(void *pvParameters)
+{
+    while(1)
+    {
+        // Task work
+    }
+}
+
+The return type is:
+
+void
+
+The parameter is:
+
+void *pvParameters
+19. WHAT IS pvParameters?
+
+pvParameters allows us to pass information to a task when creating it.
+
+Example:
+
+int sensorID = 10;
+
+xTaskCreate(
+    SensorTask,
+    "Sensor",
+    1024,
+    &sensorID,
+    3,
+    NULL
+);
+
+Inside the task:
+
+void SensorTask(void *pvParameters)
+{
+    int id = *(int *)pvParameters;
+}
+20. TASK PRIORITY
+Definition
+
+Task priority determines the relative importance of tasks to the scheduler.
+
+Example:
+
+Sensor Task        Priority 3
+Communication     Priority 2
+Monitor            Priority 1
+
+Higher number means higher priority in the normal FreeRTOS configuration.
+
+Small Example
+
+If:
+
+Task A = Priority 3
+Task B = Priority 1
+
+and both are ready:
+
+Task A
+
+is selected first.
+
+21. PREEMPTIVE SCHEDULING
+Definition
+
+Preemptive scheduling means the scheduler can interrupt a currently running lower-priority task when a higher-priority task becomes ready.
+
+Example:
+
+Low Priority Task
+       ↓
+Higher Priority Task becomes ready
+       ↓
+Scheduler
+       ↓
+Higher Priority Task runs
+
+This is very important in real-time embedded systems.
+
+22. FREERTOS TICK
+Definition
+
+The RTOS tick is a periodic interrupt/event used by the scheduler for timing and task management.
+
+Our configuration:
+
+#define configTICK_RATE_HZ 1000
+
+Therefore:
+
+1000 ticks / second
+
+Approximately:
+
+1 tick = 1 millisecond
+23. vTaskDelay()
+Definition
+
+vTaskDelay() blocks the calling task for a specified number of RTOS ticks.
+
+Example:
+
+vTaskDelay(pdMS_TO_TICKS(1000));
+
+This means approximately:
+
+Sleep/block task for 1000 ms
+
+During this time, another ready task can execute.
+
+24. WHY USE pdMS_TO_TICKS()?
+
+Instead of manually calculating ticks:
+
+1000
+
+we use:
+
+pdMS_TO_TICKS(1000)
+
+This makes the code easier to understand.
+
+Example:
+
+vTaskDelay(pdMS_TO_TICKS(500));
+
+means:
+
+Delay for approximately 500 ms
+25. TASK STATES
+
+A FreeRTOS task can be in different states.
+
+Main states:
+
+Running
+Ready
+Blocked
+Suspended
+Deleted
+Running
+
+Currently executing.
+
+Ready
+
+Ready to run but waiting for CPU time.
+
+Blocked
+
+Waiting for time or an event.
+
+Example:
+
+xQueueReceive(
+    sensorQueue,
+    &value,
+    portMAX_DELAY
+);
+
+The task can become blocked waiting for queue data.
+
+Suspended
+
+Explicitly suspended.
+
+Deleted
+
+Task has been deleted.
+
+26. TASK HANDLE
+Definition
+
+A task handle is a reference used to identify and control a task.
+
+Example:
+
+TaskHandle_t sensorTaskHandle = NULL;
+
+Then:
+
+xTaskCreate(
+    SensorTask,
+    "Sensor",
+    1024,
+    NULL,
+    3,
+    &sensorTaskHandle
+);
+
+Now:
+
+sensorTaskHandle
+
+refers to the Sensor Task.
+
+It can be used for:
+
+Notifications
+Task control
+Monitoring
+Suspend/resume
+State checking
+27. QUEUE
+Definition
+
+A FreeRTOS queue is an inter-task communication mechanism used to transfer data between tasks.
+
+Think of it as:
+
+Task A
+  |
+  | Data
+  ↓
+[ QUEUE ]
+  |
+  | Data
+  ↓
+Task B
+28. SMALL QUEUE EXAMPLE
+
+Create queue:
+
+QueueHandle_t sensorQueue;
+
+sensorQueue = xQueueCreate(5, sizeof(int));
+
+This means:
+
+Queue length = 5
+Each element = sizeof(int)
+
+Send data:
+
+int value = 25;
+
+xQueueSend(
+    sensorQueue,
+    &value,
+    portMAX_DELAY
+);
+
+Receive:
+
+int receivedValue;
+
+xQueueReceive(
+    sensorQueue,
+    &receivedValue,
+    portMAX_DELAY
+);
+29. PRODUCER-CONSUMER CONCEPT
+
+The task sending data is called the:
+
+Producer
+
+The task receiving data is called the:
+
+Consumer
+
+Our project:
+
+Sensor Task
+    |
+    | produces sensor data
+    ↓
+Sensor Queue
+    |
+    | consumes sensor data
+    ↓
+Communication Task
+
+This is a classic RTOS producer-consumer architecture.
+
+30. WHY USE A QUEUE?
+
+Without a queue:
+
+Sensor Task
+     ↓
+Global variable
+     ↓
+Communication Task
+
+This can introduce synchronization problems.
+
+With a queue:
+
+Sensor Task
+     ↓
+Queue
+     ↓
+Communication Task
+
+FreeRTOS handles the synchronization associated with queue access.
+
+31. BINARY SEMAPHORE
+Definition
+
+A binary semaphore is a synchronization mechanism with two logical states:
+
+Available
+Not available
+
+It is commonly used for signaling an event.
+
+32. SMALL BINARY SEMAPHORE EXAMPLE
+
+Create:
+
+SemaphoreHandle_t eventSemaphore;
+
+eventSemaphore = xSemaphoreCreateBinary();
+
+Give:
+
+xSemaphoreGive(eventSemaphore);
+
+Take:
+
+xSemaphoreTake(
+    eventSemaphore,
+    portMAX_DELAY
+);
+33. BINARY SEMAPHORE IN OUR PROJECT
+
+The Sensor Task gives the semaphore:
+
+xSemaphoreGive(eventSemaphore);
+
+The Communication Task waits:
+
+xSemaphoreTake(
+    eventSemaphore,
+    portMAX_DELAY
+);
+
+Conceptually:
+
+Sensor Task
+    |
+    | Event happened
+    ↓
+Binary Semaphore
+    |
+    ↓
+Communication Task
+34. QUEUE VS BINARY SEMAPHORE
+Queue	Binary Semaphore
+Transfers data	Signals event
+Stores values	Usually stores only availability state
+Producer/consumer	Synchronization
+Example: sensor value	Example: event occurred
+
+Interview answer:
+
+A queue is primarily used to transfer data between tasks, while a binary semaphore is primarily used for synchronization or event signaling.
+
+35. MUTEX
+Definition
+
+Mutex stands for:
+
+Mutual Exclusion
+
+A mutex is used to protect a shared resource from simultaneous access by multiple tasks.
+
+36. SHARED RESOURCE
+
+Suppose two tasks execute:
+
+printf("Hello");
+
+at the same time.
+
+The console is a shared resource.
+
+We can protect it:
+
+Task A
+   |
+   | Take Mutex
+   ↓
+[ Shared Resource ]
+   |
+   | Give Mutex
+   ↓
+Task B
+37. MUTEX EXAMPLE
+
+Create:
+
+printMutex = xSemaphoreCreateMutex();
+
+Take:
+
+xSemaphoreTake(
+    printMutex,
+    portMAX_DELAY
+);
+
+Access resource:
+
+printf("Sensor data\n");
+
+Release:
+
+xSemaphoreGive(printMutex);
+38. MUTEX IN OUR PROJECT
+
+We created:
+
+static SemaphoreHandle_t printMutex;
+
+Then:
+
+printMutex = xSemaphoreCreateMutex();
+
+We created a helper:
+
+SafePrint()
+
+which takes the mutex before calling printf().
+
+Concept:
+
+Sensor Task
+       \
+        \
+Communication Task → Mutex → printf()
+        /
+       /
+Monitor Task
+
+Only one task should access the protected logging resource at a time.
+
+39. MUTEX VS BINARY SEMAPHORE
+
+This is an important interview question.
+
+Mutex	Binary Semaphore
+Protects shared resource	Signals event
+Has ownership concept	No ownership concept
+Supports priority inheritance	Mutex supports priority inheritance
+Used for mutual exclusion	Used for synchronization
+Example: shared UART/log	Example: interrupt event
+40. PRIORITY INHERITANCE
+Definition
+
+Priority inheritance is a mechanism associated with FreeRTOS mutexes that helps reduce priority inversion.
+
+Example:
+
+Low Priority Task
+      |
+      | owns mutex
+      ↓
+   Mutex
+
+High Priority Task
+      |
+      | needs mutex
+      ↓
+   Blocked
+
+A medium-priority task could otherwise interfere.
+
+Priority inheritance allows the lower-priority mutex holder to temporarily inherit the higher priority.
+
+Interview statement:
+
+FreeRTOS mutexes support priority inheritance to help mitigate priority inversion.
+
+41. TASK NOTIFICATION
+Definition
+
+Task notifications are a lightweight mechanism for sending an event or small amount of information directly to a task.
+
+They are often faster and use less memory than creating a separate queue/semaphore object for simple task-to-task signaling.
+
+42. SMALL TASK NOTIFICATION EXAMPLE
+
+Notify:
+
+xTaskNotifyGive(taskHandle);
+
+Wait:
+
+ulTaskNotifyTake(
+    pdTRUE,
+    portMAX_DELAY
+);
+
+Concept:
+
+Task A
+  |
+  | Notify
+  ↓
+Task B
+43. TASK NOTIFICATION IN OUR PROJECT
+
+The Sensor Task sends:
+
+xTaskNotifyGive(
+    communicationTaskHandle
+);
+
+The Communication Task waits:
+
+ulTaskNotifyTake(
+    pdTRUE,
+    portMAX_DELAY
+);
+
+Therefore:
+
+Sensor Task
+    |
+    | Task Notification
+    ↓
+Communication Task
+44. QUEUE VS NOTIFICATION
+Queue	Task Notification
+Can transfer data	Directly signals a task
+Queue object required	Uses task's notification state
+Multiple data elements possible	Lightweight
+Producer-consumer	Event/task signaling
+More general	Very efficient for simple signaling
+
+Interview statement:
+
+Task notifications are lightweight direct-to-task signaling mechanisms and are useful when a full queue or semaphore is unnecessary.
+
+45. SOFTWARE TIMER
+Definition
+
+A software timer is a FreeRTOS mechanism that executes a callback function after a configured period.
+
+It does not require creating a dedicated application task for every timer.
+
+46. SMALL TIMER EXAMPLE
+
+Create:
+
+TimerHandle_t systemTimer;
+
+systemTimer = xTimerCreate(
+    "SystemTimer",
+    pdMS_TO_TICKS(5000),
+    pdTRUE,
+    NULL,
+    SystemTimerCallback
+);
+
+Start:
+
+xTimerStart(
+    systemTimer,
+    0
+);
+
+Callback:
+
+void SystemTimerCallback(TimerHandle_t timer)
+{
+    printf("Timer expired\n");
+}
+47. TIMER PERIOD
+
+Our timer period:
+
+#define TIMER_PERIOD_MS 5000
+
+Therefore:
+
+5 seconds
+
+The timer repeatedly generates the callback.
+
+48. AUTO-RELOAD TIMER
+
+The timer uses:
+
+pdTRUE
+
+for the auto-reload parameter.
+
+Therefore:
+
+5 sec
+ ↓
+Callback
+ ↓
+5 sec
+ ↓
+Callback
+ ↓
+5 sec
+ ↓
+Callback
+
+If:
+
+pdFALSE
+
+is used, the timer becomes a one-shot timer.
+
+49. TIMER CALLBACK
+
+A timer callback is a function called by the FreeRTOS timer service when the timer expires.
+
+Example:
+
+static void SystemTimerCallback(TimerHandle_t timer)
+{
+    printf("[TIMER] Software Timer expired.\n");
+}
+
+Important:
+
+A software timer callback executes in the FreeRTOS timer service task, not in the context of the task that created the timer.
+
+50. TASK MONITORING
+Definition
+
+Task monitoring means checking the condition and resource usage of RTOS tasks during execution.
+
+This helps identify:
+
+Blocked tasks
+Unexpected task states
+Stack problems
+Task failures
+System health issues
+51. eTaskGetState()
+
+We use:
+
+eTaskGetState(taskHandle)
+
+to obtain a task's current state.
+
+Example:
+
+eTaskState state;
+
+state = eTaskGetState(sensorTaskHandle);
+
+The result can represent states such as:
+
+Running
+Ready
+Blocked
+Suspended
+Deleted
+
+Do not rely on raw numeric enum values such as 2; use the symbolic FreeRTOS states when interpreting results.
+
+52. STACK MONITORING
+Definition
+
+Every FreeRTOS task has a stack.
+
+The stack stores information needed during task execution.
+
+If a task uses more stack than allocated, stack overflow can occur.
+
+This can cause:
+
+Memory corruption
+Crashes
+Unexpected behavior
+Hard-to-debug failures
+53. STACK SIZE
+
+When creating the task:
+
+xTaskCreate(
+    SensorTask,
+    "Sensor",
+    1024,
+    NULL,
+    3,
+    &sensorTaskHandle
+);
+
+The 1024 parameter represents the stack depth in units defined by the FreeRTOS port.
+
+It should not automatically be interpreted as 1024 bytes on every architecture.
+
+54. uxTaskGetStackHighWaterMark()
+Definition
+
+uxTaskGetStackHighWaterMark() reports the minimum amount of stack space that remained unused for a task since the task started.
+
+Example:
+
+UBaseType_t remaining;
+
+remaining =
+    uxTaskGetStackHighWaterMark(
+        sensorTaskHandle
+    );
+
+If the value becomes very small, the task may need more stack.
+
+55. HIGH-WATER MARK EXAMPLE
+
+Suppose:
+
+Allocated stack = 1024 units
+Minimum unused = 100 units
+
+That means the task came close to using the available stack.
+
+If:
+
+Minimum unused = 10
+
+we should investigate whether the stack allocation is sufficient.
+
+56. INTERRUPT
+Definition
+
+An interrupt is a hardware-generated event that temporarily interrupts normal CPU execution so that an urgent event can be handled.
+
+Examples:
+
+GPIO button press
+UART receive
+Timer interrupt
+ADC conversion complete
+CAN message received
+57. NORMAL INTERRUPT FLOW
+
+For example:
+
+Hardware Event
+      ↓
+Interrupt Controller
+      ↓
+ISR
+      ↓
+Notify / Semaphore / Queue
+      ↓
+FreeRTOS Task
+      ↓
+Application Processing
+58. WHAT IS AN ISR?
+
+ISR means:
+
+Interrupt Service Routine
+
+It is the function executed in response to an interrupt.
+
+Example STM32-style callback:
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    // Handle GPIO interrupt
+}
+59. ISR-TO-TASK COMMUNICATION
+
+An ISR should normally perform minimal work.
+
+Instead of doing heavy processing:
+
+ISR
+ ↓
+Signal task
+ ↓
+Task performs processing
+
+For example:
+
+GPIO interrupt
+      ↓
+ISR
+      ↓
+Task notification
+      ↓
+Event Task
+      ↓
+Process event
+60. FromISR APIS
+
+FreeRTOS provides APIs specifically designed for interrupt context.
+
+Examples:
+
+xQueueSendFromISR()
+xSemaphoreGiveFromISR()
+vTaskNotifyGiveFromISR()
+
+These are different from normal task-context APIs.
+
+61. SIMULATED INTERRUPT IN OUR PROJECT
+
+Because we developed the project on Windows without physical hardware, we simulated the interrupt.
+
+Our architecture:
+
+Interrupt Simulation Task
+          ↓
+SimulatedInterrupt()
+          ↓
+Task Notification
+          ↓
+Event Task
+          ↓
+Process Event
+
+The simulated interrupt is not a real hardware ISR.
+
+Interview explanation:
+
+Since the project was initially developed using the Windows FreeRTOS simulator, I simulated the hardware interrupt using a task notification. On STM32, this can be connected to an actual ISR using the appropriate FromISR API.
+
+62. COMPLETE PROJECT ARCHITECTURE
+
+Our complete architecture is:
+
+                    ┌─────────────────────┐
+                    │    FreeRTOS Kernel  │
+                    │     Scheduler       │
+                    └──────────┬──────────┘
+                               │
+          ┌────────────────────┼───────────────────┐
+          │                    │                   │
+          ▼                    ▼                   ▼
+   Sensor Task          Communication Task    Monitor Task
+   Priority 3            Priority 2           Priority 1
+          │                    │                   │
+          │                    │                   │
+          ▼                    │                   │
+      Sensor Queue ────────────┘                   │
+          │                                        │
+          ▼                                        │
+   Binary Semaphore                               │
+          │                                        │
+          └───────────────┐                        │
+                          ▼                        │
+                    Communication                 │
+                                                   │
+   Task Notification ─────────────────────────────┘
+   
+   Interrupt Simulation Task
+             │
+             ▼
+      Simulated Interrupt
+             │
+             ▼
+       Event Task
+
+   Software Timer
+         │
+         ▼
+   Timer Callback
+63. TASKS IN OUR PROJECT
+
+We have the following tasks:
+
+Task	Priority	Purpose
+Sensor Task	3	Generate sensor data
+Communication Task	2	Receive/process sensor data
+Monitor Task	1	Monitor task state and stack
+Event Task	2	Process simulated interrupt events
+Interrupt Simulation Task	2	Generate simulated events
+64. SENSOR TASK
+
+The Sensor Task:
+
+Generates sensor value.
+Takes the print mutex.
+Prints the value.
+Sends value to queue.
+Gives binary semaphore.
+Notifies Communication Task.
+Delays.
+Repeats.
+
+Concept:
+
+Generate
+   ↓
+Print
+   ↓
+Queue
+   ↓
+Semaphore
+   ↓
+Notification
+   ↓
+Delay
+   ↓
+Repeat
+65. COMMUNICATION TASK
+
+The Communication Task:
+
+Waits for queue data.
+Receives sensor value.
+Takes print mutex.
+Prints received value.
+Waits for notification.
+Processes event.
+Repeats.
+66. MONITOR TASK
+
+The Monitor Task periodically checks:
+
+Sensor Task state
+Communication Task state
+Event Task state
+Sensor stack
+Communication stack
+Event stack
+Monitor stack
+
+This provides a basic system health monitor.
+
+67. EVENT TASK
+
+The Event Task waits for notification:
+
+ulTaskNotifyTake(
+    pdTRUE,
+    portMAX_DELAY
+);
+
+When an event arrives:
+
+Notification
+     ↓
+Event Task wakes
+     ↓
+Process Event
+     ↓
+Wait again
+68. INTERRUPT SIMULATION TASK
+
+This task periodically generates a simulated event.
+
+Example:
+
+Every 700 ms
+       ↓
+Generate simulated interrupt
+       ↓
+Notify Event Task
+
+This allows us to demonstrate ISR-like event architecture without hardware.
+
+69. COMPLETE PROGRAM FLOW
+
+When the application starts:
+
+main()
+  ↓
+Initialize queue
+  ↓
+Initialize semaphore
+  ↓
+Initialize mutex
+  ↓
+Create timer
+  ↓
+Create tasks
+  ↓
+Start timer
+  ↓
+Start scheduler
+  ↓
+FreeRTOS takes control
+
+After scheduler starts:
+
+Sensor Task
+Communication Task
+Monitor Task
+Event Task
+Interrupt Simulation Task
+
+execute according to their states, priorities, delays, and synchronization.
+
+70. IMPORTANT FREE RTOS API LIST
+Task APIs
+xTaskCreate()
+vTaskDelay()
+vTaskStartScheduler()
+vTaskDelete()
+vTaskSuspend()
+vTaskResume()
+Queue APIs
+xQueueCreate()
+xQueueSend()
+xQueueReceive()
+xQueueSendFromISR()
+Semaphore APIs
+xSemaphoreCreateBinary()
+xSemaphoreGive()
+xSemaphoreTake()
+xSemaphoreGiveFromISR()
+Mutex APIs
+xSemaphoreCreateMutex()
+xSemaphoreTake()
+xSemaphoreGive()
+Notification APIs
+xTaskNotifyGive()
+ulTaskNotifyTake()
+vTaskNotifyGiveFromISR()
+Timer APIs
+xTimerCreate()
+xTimerStart()
+xTimerStop()
+xTimerDelete()
+Monitoring APIs
+eTaskGetState()
+uxTaskGetStackHighWaterMark()
+71. ERROR CHECKING
+
+FreeRTOS functions often return values that should be checked.
+
+Example:
+
+sensorQueue = xQueueCreate(
+    5,
+    sizeof(int)
+);
+
+if(sensorQueue == NULL)
+{
+    printf("Queue creation failed\n");
+}
+
+This is important because dynamic memory allocation can fail.
+
+72. DYNAMIC MEMORY ALLOCATION
+
+Our configuration enables:
+
+#define configSUPPORT_DYNAMIC_ALLOCATION 1
+
+Therefore APIs such as:
+
+xTaskCreate()
+xQueueCreate()
+xSemaphoreCreateMutex()
+
+can allocate required RTOS objects dynamically.
+
+73. HEAP
+
+Our configuration:
+
+#define configTOTAL_HEAP_SIZE (64 * 1024)
+
+This provides a FreeRTOS heap area of 64 KB for dynamic allocation.
+
+FreeRTOS supports different heap implementations.
+
+Our project configured:
+
+set(FREERTOS_HEAP 4 CACHE STRING "" FORCE)
+
+which selects the appropriate FreeRTOS heap implementation supported by the project configuration.
+
+74. WINDOWS SIMULATION LIMITATIONS
+
+This point is very important for interviews.
+
+Our Windows application demonstrates FreeRTOS concepts, but it is not identical to running FreeRTOS on an STM32 microcontroller.
+
+Differences include:
+
+Hardware interrupts are simulated.
+No real GPIO.
+No real UART.
+No real ADC.
+No actual MCU timer peripheral.
+No ARM Cortex-M interrupt controller.
+Timing behavior is affected by Windows.
+CPU scheduling is ultimately performed within the Windows environment.
+
+Therefore:
+
+This project is a FreeRTOS learning and architecture simulation project, not a replacement for actual MCU validation.
+
+75. BUILDING THE PROJECT
+
+Open terminal in:
+
+FreeRTOS-MultiTask-Monitor
+
+Create build directory:
+
+cmake -S . -B build
+
+Build:
+
+cmake --build build --config Debug
+
+The executable will be generated under approximately:
+
+build\Debug\FreeRTOS_MultiTask_Monitor.exe
+76. RUNNING THE PROJECT
+
+From the project directory:
+
+build\Debug\FreeRTOS_MultiTask_Monitor.exe
+
+Or:
+
+cd build
+Debug\FreeRTOS_MultiTask_Monitor.exe
+77. EXPECTED OUTPUT
+
+Example:
+
+====================================================
+        FreeRTOS Multi-Task Monitoring System
+====================================================
+ Queue + Semaphore + Mutex + Notification
+ Software Timer + Task Monitoring + Stack Monitoring
+ Interrupt/Event Simulation
+====================================================
+
+[MAIN] Sensor Queue created successfully.
+[MAIN] Binary Semaphore created successfully.
+[MAIN] Mutex created successfully.
+[MAIN] Software Timer created successfully.
+[MAIN] Software Timer started.
+
+[MAIN] Starting FreeRTOS Scheduler...
+
+Then:
+
+[Sensor Task] Sensor Value = 1
+[Sensor Task] Data sent to Queue.
+[Sensor Task] Binary Semaphore given.
+[Sensor Task] Communication Task notified.
+
+[Communication Task] Received Sensor Value = 1
+[Communication Task] Task Notification received.
+78. MONITOR OUTPUT
+
+Example:
+
+-----------------------------------------
+[Monitor Task] System Monitoring
+-----------------------------------------
+
+[Monitor] Sensor Task State
+[Monitor] Communication State
+[Monitor] Event Task State
+
+[Monitor] Sensor Stack Free
+[Monitor] Communication Stack Free
+[Monitor] Event Stack Free
+[Monitor] Monitor Stack Free
+
+This demonstrates task monitoring.
+
+79. TIMER OUTPUT
+
+Every five seconds approximately:
+
+[TIMER] Software Timer expired.
+[TIMER] Periodic system event generated.
+
+This confirms the software timer is working.
+
+80. EVENT OUTPUT
+
+The interrupt simulation generates:
+
+[Simulator] Generating simulated interrupt...
+
+Then:
+
+[Event Task] Interrupt/Event received!
+[Event Task] Processing event...
+[Event Task] Event processing completed.
+
+This demonstrates task notification-based event handling.
+
+81. COMMON ERROR — QTCP SOCKET
+
+During Qt work, an earlier type of issue was:
+
+QTcpSocket: No such file or directory
+
+The reason is generally that the Qt Network module is not enabled.
+
+For Qt projects:
+
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network)
+
+and:
+
+target_link_libraries(
+    app
+    PRIVATE
+    Qt6::Core
+    Qt6::Widgets
+    Qt6::Network
+)
+
+This is separate from our FreeRTOS project, but it is an important build-system lesson.
+
+82. COMMON GIT MISTAKE
+
+Initially Git was accidentally initialized inside:
+
+build/
+
+That was incorrect.
+
+The repository root should be:
+
+FreeRTOS-MultiTask-Monitor/
+
+not:
+
+FreeRTOS-MultiTask-Monitor/build/
+
+The build directory should be ignored.
+
+83. .GITIGNORE
+
+Our .gitignore contains entries such as:
+
+build/
+out/
+
+.vs/
+.vscode/
+
+*.user
+*.suo
+*.VC.db
+
+*.exe
+*.dll
+*.lib
+*.obj
+*.pdb
+*.ilk
+
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+install_manifest.txt
+
+Thumbs.db
+Desktop.ini
+
+Purpose:
+
+Source code → GitHub
+Generated files → Ignore
+84. GIT INITIALIZATION
+
+From project root:
+
+git init
+
+Check:
+
+git status
+
+Add files:
+
+git add .
+
+Commit:
+
+git commit -m "Initial FreeRTOS multi-task monitoring project"
+85. GIT IDENTITY
+
+If Git shows:
+
+Author identity unknown
+
+configure:
+
+git config --global user.name "Your Name"
+
+and:
+
+git config --global user.email "your@email.com"
+
+Then commit again.
+
+86. GIT SUBMODULE
+Definition
+
+A Git submodule allows one Git repository to be included inside another Git repository while maintaining it as a separate repository.
+
+Our parent project:
+
+FreeRTOS-MultiTask-Monitor
+
+contains:
+
+FreeRTOS-Kernel
+
+The FreeRTOS Kernel itself is a separate Git repository.
+
+Therefore, we use a submodule.
+
+87. WHY USE A SUBMODULE?
+
+Without a submodule:
+
+Parent Git repository
+      ↓
+Copies FreeRTOS source
+
+With submodule:
+
+Parent repository
+      ↓
+Reference to FreeRTOS Kernel commit
+      ↓
+FreeRTOS Kernel repository
+
+This keeps the external dependency separate.
+
+88. .GITMODULES
+
+Our .gitmodules contains:
+
+[submodule "FreeRTOS-Kernel"]
+path = FreeRTOS-Kernel
+url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
+
+Meaning:
+
+Submodule name:
+FreeRTOS-Kernel
+
+Local path:
+FreeRTOS-Kernel
+
+Remote repository:
+FreeRTOS-Kernel GitHub repository
+89. GITLINK
+
+When checking:
+
+git ls-files --stage FreeRTOS-Kernel
+
+we saw something like:
+
+160000 8be86d4... FreeRTOS-Kernel
+
+The mode:
+
+160000
+
+indicates a Git submodule/gitlink entry.
+
+The parent repository stores the commit reference rather than treating the entire kernel as normal parent-repository files.
+
+90. GIT SUBMODULE STATUS
+
+Command:
+
+git submodule status
+
+can show:
+
+-8be86d4... FreeRTOS-Kernel
+
+A leading - indicates that the submodule is registered but not initialized/checked out at that moment.
+
+After initialization:
+
+git submodule update --init --recursive
+
+the required submodule content is checked out.
+
+91. GITHUB REPOSITORY
+
+Our GitHub repository is:
+
+FreeRTOS-MultiTask-Monitor on GitHub
+
+The repository contains the project source and configuration needed to reproduce the project.
+
+92. CONNECTING LOCAL REPOSITORY TO GITHUB
+
+Example:
+
+git branch -M main
+
+Add remote:
+
+git remote add origin https://github.com/krishnaswamy939/FreeRTOS-MultiTask-Monitor.git
+
+Check:
+
+git remote -v
+
+Push:
+
+git push -u origin main
+93. STM32 MIGRATION
+
+The next stage is migrating this architecture to STM32.
+
+The conceptual architecture remains:
+
+STM32 Hardware
+      ↓
+FreeRTOS
+      ↓
+Tasks
+      ↓
+Queues / Semaphores / Mutexes
+      ↓
+Application
+94. STM32 MIGRATION STEPS
+Step 1
+
+Create STM32 project using STM32CubeMX/CubeIDE.
+
+Step 2
+
+Select MCU.
+
+Example:
+
+STM32F411
+Step 3
+
+Configure:
+
+Clock
+GPIO
+UART
+Timer
+Interrupts
+Step 4
+
+Enable FreeRTOS.
+
+Step 5
+
+Create tasks.
+
+Step 6
+
+Replace simulated sensor with actual GPIO/ADC/UART/CAN data.
+
+Step 7
+
+Replace simulated interrupt with real ISR.
+
+95. STM32 ISR EXAMPLE
+
+A GPIO interrupt can use:
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    if(eventTaskHandle != NULL)
+    {
+        vTaskNotifyGiveFromISR(
+            eventTaskHandle,
+            &xHigherPriorityTaskWoken
+        );
+
+        portYIELD_FROM_ISR(
+            xHigherPriorityTaskWoken
+        );
+    }
+}
+
+Concept:
+
+GPIO
+ ↓
+Interrupt
+ ↓
+ISR
+ ↓
+Task Notification
+ ↓
+Event Task
+96. WHY SHOULD ISR BE SHORT?
+
+An ISR should generally execute quickly.
+
+Avoid doing heavy operations such as:
+
+Long calculations
+Large loops
+Blocking operations
+Long printf operations
+Waiting for mutex
+
+Instead:
+
+ISR
+ ↓
+Capture event
+ ↓
+Notify task
+ ↓
+Exit ISR
+
+Then the task performs the actual processing.
+
+97. INTERVIEW QUESTION — WHAT IS FREERTOS?
+
+Answer:
+
+FreeRTOS is a real-time operating system kernel for embedded systems. It provides task scheduling, inter-task communication, synchronization mechanisms such as queues, semaphores and mutexes, task notifications, software timers, and memory management.
+
+98. INTERVIEW QUESTION — WHAT IS A TASK?
+
+Answer:
+
+A task is an independent unit of execution managed by the FreeRTOS scheduler. Each task has its own stack, priority, state, and task control information.
+
+99. INTERVIEW QUESTION — WHAT IS A QUEUE?
+
+Answer:
+
+A FreeRTOS queue is an inter-task communication mechanism used to safely transfer data between tasks. It is commonly used in producer-consumer architectures.
+
+100. INTERVIEW QUESTION — QUEUE VS SEMAPHORE?
+
+Answer:
+
+A queue is mainly used for transferring data, while a semaphore is mainly used for synchronization or event signaling.
+
+101. INTERVIEW QUESTION — WHAT IS A MUTEX?
+
+Answer:
+
+A mutex provides mutual exclusion when multiple tasks access a shared resource. Only one task can own the mutex at a time.
+
+102. INTERVIEW QUESTION — MUTEX VS BINARY SEMAPHORE?
+
+Answer:
+
+A mutex is primarily used to protect a shared resource and has ownership semantics with priority inheritance. A binary semaphore is primarily used for synchronization or event signaling and does not have the same ownership semantics.
+
+103. INTERVIEW QUESTION — WHAT IS PRIORITY INHERITANCE?
+
+Answer:
+
+Priority inheritance is a mechanism used with mutexes to reduce priority inversion. When a high-priority task is blocked by a lower-priority task holding a mutex, the lower-priority task can temporarily inherit the higher priority so it can release the mutex sooner.
+
+104. INTERVIEW QUESTION — WHAT IS TASK NOTIFICATION?
+
+Answer:
+
+A task notification is a lightweight direct-to-task signaling mechanism. It is useful when a task needs to be notified about an event without creating a separate queue or semaphore object.
+
+105. INTERVIEW QUESTION — WHAT IS A SOFTWARE TIMER?
+
+Answer:
+
+A FreeRTOS software timer allows a callback function to be executed after a configured period. A timer can be one-shot or auto-reloading.
+
+106. INTERVIEW QUESTION — WHAT IS STACK OVERFLOW?
+
+Answer:
+
+Stack overflow occurs when a task requires more stack space than was allocated to it. It can cause memory corruption and unpredictable behavior, so task stack usage should be monitored and configured appropriately.
+
+107. INTERVIEW QUESTION — WHAT IS STACK HIGH-WATER MARK?
+
+Answer:
+
+The stack high-water mark indicates the minimum amount of unused stack space observed for a task since the task started. It helps determine whether the allocated task stack is sufficient.
+
+108. INTERVIEW QUESTION — WHAT IS ISR?
+
+Answer:
+
+ISR stands for Interrupt Service Routine. It is executed when a hardware interrupt occurs. In an RTOS system, the ISR should normally perform minimal work and signal a task to perform the larger processing operation.
+
+109. INTERVIEW QUESTION — WHY USE FromISR API?
+
+Answer:
+
+FreeRTOS provides special FromISR APIs because interrupt context has different execution requirements from normal task context. For example, vTaskNotifyGiveFromISR() can notify a task safely from an ISR.
+
+110. INTERVIEW QUESTION — WHY DID YOU SIMULATE INTERRUPTS?
+
+Answer:
+
+I initially developed the project on Windows because the STM32 hardware was not available. Therefore, I simulated the interrupt event using a task and task notification. The architecture is designed so that it can later be connected to a real STM32 ISR using the appropriate FromISR API.
+
+111. INTERVIEW QUESTION — WHY USE TASK HANDLES?
+
+Answer:
+
+Task handles provide references to specific tasks. They can be used for operations such as notifications, monitoring, state checking, suspension, and resumption.
+
+112. INTERVIEW QUESTION — WHY USE A MUTEX FOR PRINTF?
+
+Answer:
+
+In the Windows simulation, the console output is treated as a shared resource. Multiple tasks can print messages, so I use a mutex to serialize access to the logging function. On the actual embedded target, the same concept could be applied to shared UART or another common peripheral resource.
+
+113. 30-SECOND PROJECT EXPLANATION
+
+In an interview, you can say:
+
+I developed a FreeRTOS-based multi-task monitoring system initially on Windows using the FreeRTOS kernel simulation environment. The project contains multiple tasks with different priorities and demonstrates queues, binary semaphores, mutexes, task notifications, software timers, task-state monitoring, and stack high-water monitoring. I also simulated an interrupt-to-task event flow using task notifications. The application is structured so that the simulated components can later be replaced with STM32 hardware peripherals and real ISR handling.
+
+114. 1-MINUTE PROJECT EXPLANATION
+
+The main objective of the project was to get practical hands-on experience with FreeRTOS rather than only studying individual APIs. I created Sensor, Communication, Monitor, Event, and Interrupt Simulation tasks. The Sensor Task generates data and sends it through a queue. A binary semaphore is used for event synchronization, while a mutex protects the shared logging resource. Task notifications are used for lightweight direct task signaling. A periodic software timer generates system events. The Monitor Task checks task states and stack high-water marks. Since I initially developed it without the STM32 hardware, I simulated the interrupt mechanism using a task notification. The same architecture can later be migrated to STM32 by connecting actual GPIO/UART/timer interrupts and peripherals.
+
+115. RESUME PROJECT DESCRIPTION
+
+You can write:
+
+FreeRTOS Multi-Task Monitoring System
+Developed a FreeRTOS-based multi-task monitoring application in C using a Windows simulation environment, demonstrating task scheduling, priorities, delays, and inter-task communication.
+Implemented producer-consumer communication using FreeRTOS queues and event synchronization using binary semaphores and task notifications.
+Implemented mutex-based protection for shared resources and studied priority-inheritance behavior.
+Added periodic software timers, task-state monitoring, and stack high-water-mark monitoring for basic RTOS health diagnostics.
+Simulated interrupt-to-task communication using task notifications and designed the architecture for migration to STM32 hardware using ISR-safe FreeRTOS APIs.
+Integrated the project with CMake and Git/GitHub, maintaining the FreeRTOS Kernel as a Git submodule.
+116. IMPORTANT HONESTY POINT FOR RESUME
+
+Because this project was initially developed on Windows:
+
+Do not write:
+
+"Developed 2 years of professional FreeRTOS experience."
+
+Instead, write:
+
+"Hands-on FreeRTOS project experience through a multi-task monitoring application."
+
+Or:
+
+"Developed a FreeRTOS-based multi-tasking project using queues, semaphores, mutexes, notifications, timers, and task monitoring."
+
+This accurately represents what was actually done.
+
+117. FINAL PROJECT CONCEPT MAP
+                    FreeRTOS
+                       │
+             ┌─────────┴─────────┐
+             │                   │
+        Scheduler             Kernel
+             │
+       ┌─────┼──────────┐
+       │     │          │
+     Tasks  Queue    Synchronization
+       │              │
+       │       ┌──────┼───────────┐
+       │       │      │           │
+       │    Semaphore Mutex   Notification
+       │
+       ├── Priority
+       ├── State
+       ├── Stack
+       └── Delay
+       
+       Timer
+         │
+         ↓
+    Callback
+
+       Interrupt
+          │
+          ↓
+         ISR
+          │
+          ↓
+   FromISR API
+          │
+          ↓
+        Task
+118. COMPLETE PROJECT CHECKLIST
+
+Before considering the project complete, verify:
+
+FreeRTOS
+ FreeRTOS Kernel added
+ FreeRTOSConfig.h created
+ Scheduler started
+ Multiple tasks created
+ Task priorities configured
+ Task delays implemented
+Communication
+ Queue implemented
+ Producer task implemented
+ Consumer task implemented
+ Binary semaphore implemented
+ Task notification implemented
+Synchronization
+ Mutex implemented
+ Shared resource protected
+ Priority inheritance understood
+Timing
+ RTOS tick understood
+ Software timer implemented
+ Auto-reload timer implemented
+ Timer callback implemented
+Monitoring
+ Task handles implemented
+ Task states monitored
+ Stack high-water mark monitored
+Interrupt
+ Interrupt concept understood
+ ISR-to-task architecture understood
+ Simulated interrupt implemented
+ FromISR APIs understood
+Build
+ CMake configured
+ Project builds
+ Executable runs
+ Output verified
+Git
+ Git initialized
+ .gitignore created
+ Initial commit created
+ FreeRTOS Kernel configured as submodule
+ .gitmodules created
+ GitHub remote configured
+ Project pushed to GitHub
+119. COMMAND CHEAT SHEET
+Configure
+cmake -S . -B build
+Build
+cmake --build build --config Debug
+Run
+build\Debug\FreeRTOS_MultiTask_Monitor.exe
+Git status
+git status
+Git add
+git add .
+Git commit
+git commit -m "Your message"
+Git log
+git log --oneline
+Git remote
+git remote -v
+Push
+git push -u origin main
+Submodule status
+git submodule status
+Initialize submodules
+git submodule update --init --recursive
+120. FINAL LEARNING SUMMARY
+
+After completing this project, you should be able to explain:
+
+RTOS Fundamentals
+What is an RTOS?
+What is FreeRTOS?
+What is a task?
+What is a scheduler?
+What is preemptive scheduling?
+What is a tick?
+What is a task state?
+What is task priority?
+Inter-Task Communication
+What is a queue?
+What is a producer?
+What is a consumer?
+What is a binary semaphore?
+What is a task notification?
+Synchronization
+What is a mutex?
+Why do we need mutual exclusion?
+What is priority inversion?
+What is priority inheritance?
+Timing
+What is a software timer?
+What is a timer callback?
+What is an auto-reload timer?
+Difference between task delay and software timer?
+Memory
+What is a task stack?
+What is the FreeRTOS heap?
+What is stack overflow?
+What is stack high-water mark?
+Interrupts
+What is an interrupt?
+What is an ISR?
+Why should an ISR be short?
+What are FromISR APIs?
+How do you communicate from ISR to task?
+Practical Development
+How to configure FreeRTOS
+How to build using CMake
+How to debug build errors
+How to use Git
+How to use GitHub
+How to use a Git submodule
+How to migrate the architecture to STM32
+121. FINAL INTERVIEW GOLDEN ANSWER
+
+If the interviewer asks:
+
+"What exactly did you learn from this project?"
+
+You can answer:
+
+"I used this project to understand FreeRTOS from the application level rather than just studying the APIs individually. I implemented multiple prioritized tasks and used queues for data transfer, binary semaphores for event synchronization, mutexes for shared-resource protection, task notifications for lightweight direct task signaling, and software timers for periodic operations. I also implemented task-state and stack high-water-mark monitoring. Since I initially developed the application without the STM32 hardware, I simulated an interrupt event and used task notification to wake an event-processing task. I also worked with CMake, Git, GitHub, and the FreeRTOS Kernel as a Git submodule. The next step is to migrate the same architecture to STM32 and replace the simulated components with actual GPIO, UART, timer, and interrupt peripherals."
+
+122. MOST IMPORTANT CONCEPT TO REMEMBER
+
+Don't memorize FreeRTOS APIs individually.
+
+Understand the architecture:
+
+                    EVENT / DATA
+                         │
+                         ▼
+                  ┌─────────────┐
+                  │ FreeRTOS    │
+                  │ Scheduler   │
+                  └──────┬──────┘
+                         │
+       ┌─────────────────┼──────────────────┐
+       │                 │                  │
+       ▼                 ▼                  ▼
+   Sensor Task     Communication Task   Monitor Task
+       │                 │                  │
+       │                 │                  │
+       ▼                 │                  │
+     Queue ──────────────┘                  │
+       │                                    │
+       ▼                                    │
+  Sensor Data                               │
+                                            │
+       Semaphore ───────────────────────────┤
+                                            │
+       Mutex ───────────────────────────────┤
+                                            │
+       Notification ────────────────────────┤
+                                            │
+       Timer ──────────────────────────────►│
+                                            │
+       Interrupt ──► ISR ──► Notification ─┘
+
+The core idea is:
+
+Tasks perform the work, the scheduler decides when they run, queues transfer data, semaphores synchronize events, mutexes protect shared resources, notifications provide lightweight task signaling, timers provide periodic events, and interrupts connect hardware events to the RTOS.
+
+123. NEXT STEP AFTER THIS PROJECT
+
+The natural next step is to reproduce the same architecture on an STM32 board:
+
+Windows Simulation
+       ↓
+FreeRTOS Concepts
+       ↓
+STM32 CubeMX
+       ↓
+STM32CubeIDE
+       ↓
+FreeRTOS on Cortex-M
+       ↓
+GPIO
+UART
+Timer
+Interrupt
+ADC
+CAN
+       ↓
+Real Embedded RTOS Project
+
+That will turn this from a FreeRTOS simulation project into a real microcontroller FreeRTOS project and give you a strong practical foundation for embedded interviews.
